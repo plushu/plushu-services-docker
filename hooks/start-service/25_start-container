@@ -15,7 +15,12 @@ start_container () {
   # If we're replacing a container that should be shut down
   if [[ -f "$target_dir/docker/replacing.cid" ]]; then
     oldcid="$(<"$target_dir/docker/replacing.cid")"
-    docker stop "$oldcid" > /dev/null && docker rm "$oldcid" > /dev/null
+
+    # Stop the old container (or be cool if it's already stopped)
+    docker stop "$oldcid" > /dev/null || :
+
+    # Remove the old container
+    docker rm "$oldcid" > /dev/null
     rm "$target_dir/docker/replacing.cid"
   fi
 

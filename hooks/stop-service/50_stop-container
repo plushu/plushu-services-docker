@@ -12,6 +12,10 @@ if [[ -f "$cidfile" ]]; then
 
   # TODO: script to perform shutdown operations?
 
-  docker stop "$oldcid" > /dev/null && docker rm "$oldcid" > /dev/null
+  # Stop the old container (or be cool if it's already stopped)
+  docker stop "$oldcid" > /dev/null || :
+
+  # Remove the old container
+  docker rm "$oldcid" > /dev/null
   rm "$cidfile"
 fi

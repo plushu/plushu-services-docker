@@ -10,7 +10,7 @@ docker_start="$service_path/docker/start"
 start_container () {
   # start a new container for the service
   PLUSHU_SERVICE_NAME=$service PLUSHU_SERVICE_PATH=$service_path \
-    "$docker_start" | xargs -x docker run -d >"$cidfile"
+    "$docker_start" "$target_dir" | xargs -x docker run -d >"$cidfile"
 
   # If we're replacing a container that should be shut down
   if [[ -f "$target_dir/docker/replacing.cid" ]]; then

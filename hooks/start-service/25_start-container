@@ -14,14 +14,9 @@ start_container () {
 
   # If we're replacing a container that should be shut down
   if [[ -f "$target_dir/docker/replacing.cid" ]]; then
-    oldcid="$(<"$target_dir/docker/replacing.cid")"
-
-    # Stop the old container (or be cool if it's already stopped)
-    docker stop "$oldcid" > /dev/null || :
-
-    # Remove the old container
-    docker rm "$oldcid" > /dev/null
-    rm "$target_dir/docker/replacing.cid"
+    # Stop and remove that container
+    "$PLUSHU_ROOT/lib/plushook" docker-rm-cidfile \
+      "$target_dir/docker/replacing.cid"
   fi
 
   # Ensure the correct user owns the cidfile

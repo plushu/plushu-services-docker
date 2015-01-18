@@ -6,16 +6,8 @@ service_path="$PLUSHU_SERVICES_DIR/$service"
 target_dir="$2"
 cidfile="$target_dir/docker/run.cid"
 
-# kill the app when running
+# kill the service if it appears to be running
 if [[ -f "$cidfile" ]]; then
-  oldcid="$(<"$cidfile")"
-
   # TODO: script to perform shutdown operations?
-
-  # Stop the old container (or be cool if it's already stopped)
-  docker stop "$oldcid" > /dev/null || :
-
-  # Remove the old container
-  docker rm "$oldcid" > /dev/null
-  rm "$cidfile"
+  "$PLUSHU_ROOT/lib/plushook" docker-rm-cidfile "$cidfile"
 fi

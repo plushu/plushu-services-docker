@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ -n "$PLUSHU_TRACE" ]] && set -x
+
+service="$1"
+service_path="$PLUSHU_SERVICES_DIR/$service"
+target_dir="$2"
+cidfile="$target_dir/docker/run.cid"
+
+# kill the app when running
+if [[ -f "$cidfile" ]]; then
+  oldcid="$(<"$cidfile")"
+
+  # TODO: script to perform shutdown operations?
+
+  docker stop "$oldcid" > /dev/null && docker rm "$oldcid" > /dev/null
+  rm "$cidfile"
+fi

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ -n "$PLUSHU_TRACE" ]] && set -x
+
+service=$1
+
+service_path=$PLUSHU_SERVICES_DIR/$service
+
+# this can theoretically cause unused images to pile up - there's kind of
+# nothing you can do about that, short of pruning your Docker images
+# regularly.
+
+# TODO: only pull if we don't already have this image?
+
+if [[ -e "$service_path/docker/DEFAULT_IMAGE" ]]; then
+  docker pull "$(<"$service_path/docker/DEFAULT_IMAGE")"
+fi

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ -n "$PLUSHU_TRACE" ]] && set -x
+
+service=$1
+target_dir=$2
+version=$3
+
+service_path=$PLUSHU_SERVICES_DIR/$service
+
+if [[ -e "$service_path/docker/init" ]]; then
+  PLUSHU_SERVICE_NAME="$service" PLUSHU_SERVICE_PATH="$service_path" \
+    "$service_path/docker/init" "$target_dir" "$version"
+fi

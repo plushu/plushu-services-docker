@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ -n "$PLUSHU_TRACE" ]] && set -x
+
+service=$1
+service_path=$PLUSHU_SERVICES_DIR/$service
+
+if [[ -e "$service_path/docker/DEFAULT_IMAGE" ]]; then
+  docker pull "$(<"$service_path/docker/DEFAULT_IMAGE")"
+fi

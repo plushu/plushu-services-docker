@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ -n "$PLUSHU_TRACE" ]] && set -x
+
+service=$1
+target_dir=$2
+version=$3
+
+service_path=$PLUSHU_SERVICES_DIR/$service
+
+# Only set an image if this service supports Docker
+if [[ -e "$service_path/docker/DEFAULT_IMAGE" ]]; then
+  default_image="$(<"$service_path/docker/DEFAULT_IMAGE")"
+  default_repo=${default_image%%:*}
+  default_tag=${default_image#*:}
+
+  if [[ "$version" == *:* ]]; then
+    specified_repo=${version%%:*}
+    specified_tag=${version#*:}
+    image=${specified_repo:-$default_repo}:${specified_tag:-$default_tag}
+  elif [[ -n "$version" ]]; then
+    image=$default_repo:$version
+  else
+    image=$default_image
+  fi
+
+  mkdir -p "$target_dir/docker"
+
+  printf '%s\n' "$version" >"$target_dir/docker/IMAGE"
+
+  if [[ "$EUID" == 0 ]]; then
+    chown -R "$PLUSHU_USER:" "$target_dir/docker"
+  fi
+fi

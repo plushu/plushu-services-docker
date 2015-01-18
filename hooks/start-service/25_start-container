@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ -n "$PLUSHU_TRACE" ]] && set -x
+
+service="$1"
+service_path="$PLUSHU_SERVICES_DIR/$service"
+target_dir="$2"
+cidfile="$target_dir/docker/run.cid"
+docker_start="$service_path/docker/start"
+
+start_container () {
+  # start a new container for the service
+  PLUSHU_SERVICE_NAME=$service PLUSHU_SERVICE_PATH=$service_path \
+    "$docker_start" | xargs -x docker run -d >"$cidfile"
+
+  # If we're replacing a container that should be shut down
+  if [[ -f "$target_dir/docker/replacing.cid" ]]; then
+    oldcid="$(<"$target_dir/docker/replacing.cid")"
+    docker stop "$oldcid" > /dev/null && docker rm "$oldcid" > /dev/null
+    rm "$target_dir/docker/replacing.cid"
+  fi
+
+  # Ensure the correct user owns the cidfile
+  if [[ "$EUID" == 0 ]]; then
+    chown "$PLUSHU_USER:" "$cidfile"
+  fi
+}
+
+# If this service supports Docker
+if [[ -e "$docker_start" ]]; then
+  # if there's no running CID
+  if [[ ! -f "$cidfile" ]]; then
+    start_container
+
+  # If there is a running CID
+  else
+    # just attempt to start the container -
+    # this will return true if the container was already started
+    # or was started now, and will fail if the container was
+    # not startable for some reason
+    if ! docker start "$(<"$cidfile")" >/dev/null 2>&1; then
+
+      # if the "running" container can't be started
+
+      # ensure the container is removed
+      docker rm "$(<"$cidfile")" >/dev/null 2>&1 || :
+
+      # (the next step will overwrite the cidfile so no need to rm it)
+
+      # start a new container
+      start_container
+    fi
+  fi
+fi

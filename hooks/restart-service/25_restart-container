@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ -n "$PLUSHU_TRACE" ]] && set -x
+
+service="$1"
+service_path="$PLUSHU_SERVICES_DIR/$service"
+target_dir="$2"
+
+# if the service needs hard stop-start restarting without failover
+if [[ -f "$service_path/docker/SINGLE_INSTANCE" ]]; then
+  "$PLUSHU_ROOT/lib/plushook" stop-service "$service" "$target_dir"
+  "$PLUSHU_ROOT/lib/plushook" start-service "$service" "$target_dir"
+else
+  # sunset any currently-running container
+  if [[ -f "$target_dir/docker/run.cid" ]]; then
+    mv -f "$target_dir/docker/run.cid" "$target_dir/docker/replacing.cid"
+  fi
+  # start a new container to replace it
+  "$PLUSHU_ROOT/lib/plushook" start-service "$service" "$target_dir"
+fi
